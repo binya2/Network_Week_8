@@ -3,39 +3,49 @@ from core.output_string import format_input_ip, format_subnet_mask, format_class
 
 
 def validate_mask(subnet_mask: str) -> bool:
-    binary_subnet_mask = bin(convert_str_to_word(subnet_mask))[1:]
-    index = binary_subnet_mask[2:].find('0')
-    ones_checker = '1' in binary_subnet_mask[index + 1:]
-
-    return ones_checker and validate_ip(subnet_mask)
+    if not validate_ip(subnet_mask):
+        return False
+    word = convert_str_to_word(subnet_mask)
+    binary = f"{word:032b}"
+    first_zero = binary.find("0")
+    if "1" in binary[first_zero:]:
+        return False
+    if binary.count("1") == 0:
+        return False
+    return True
 
 
 def validate_ip(ip_address: str) -> bool:
-    octets = ip_address.split('.')
+    octets = ip_address.strip().split(".")
     if len(octets) != 4:
         return False
     for octet in octets:
-        if 0 > int(octet) or int(octet) > 255:
+        try:
+            value = int(octet)
+        except ValueError:
+            return False
+        if value < 0 or value > 255:
             return False
     return True
 
 
-def analysis_ip(ip: str, mask: str)-> tuple:
+def analysis_ip(ip: str, mask: str) -> tuple:
     ip_address = convert_str_to_word(ip)
     subnet_mask = convert_str_to_word(mask)
+    cidr_mask = bin(subnet_mask).count("1")
+    network_word = ip_address & subnet_mask
+    host_bits = 32 - cidr_mask
+    broadcast_word = network_word | (2**host_bits - 1)
+    network = convert_word_to_str(network_word)
+    broadcast = convert_word_to_str(broadcast_word)
+    if cidr_mask >= 31:
+        num_hosts = 0
+    else:
+        num_hosts = 2**host_bits - 2
+    class_type = class_ip_checker(ip, mask)
+    return class_type, network, broadcast, num_hosts, cidr_mask
 
-    cidr_mask = bin(subnet_mask).count('1')
 
-    network = ip_address & subnet_mask
-    broadcast = network | (2 ** (32 - cidr_mask) - 1)
-    network = convert_word_to_str(network)
-    broadcast = convert_word_to_str(broadcast)
-
-    subnets_num = (2 ** (32 - cidr_mask) - 2)
-    class_type = class_ip_checker(ip,mask)
-
-
-    return class_type, network, broadcast, subnets_num, cidr_mask
 
 
 def convert_str_to_word(ip_address: str) -> int:
@@ -64,14 +74,12 @@ def check_ip_class(ip_address: str) -> tuple:
 
 def class_ip_checker(ip_address: str, subnet_mask: str) -> str:
     class_type, class_mask = check_ip_class(ip_address)
-
     if class_mask == subnet_mask:
         return class_type
-    else:
-        return "Classless"
+    return "Classless"
 
 
-def writing_to_file(filename:str, data:str):
+def writing_to_file(filename: str, data: str):
     with open(filename, 'w') as f:
         f.write(data)
 
@@ -85,5 +93,3 @@ def str_generator(ip_address, subnet_mask, class_type, network, broadcast, subne
             f"{format_num_hosts(subnets_num)}"
             f"{format_cidr_mask(cidr_mask)}")
     return data
-
-
