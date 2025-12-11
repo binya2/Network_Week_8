@@ -63,11 +63,11 @@ def convert_word_to_str(word: int) -> str:
 def check_ip_class(ip_address: str) -> tuple:
     first_octet = int(ip_address.split('.')[0])
     if 0 <= first_octet <= 127:
-        return "Class A", "225.0.0.0"
+        return "Class A", "255.0.0.0"
     elif 128 <= first_octet <= 191:
-        return "Class B", "225.225.0.0"
+        return "Class B", "255.255.0.0"
     elif 192 <= first_octet <= 223:
-        return "Class C", "225.225.225.0"
+        return "Class C", "255.255.255.0"
     else:
         return "D/E", ""
 
