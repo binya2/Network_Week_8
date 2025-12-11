@@ -35,17 +35,15 @@ def analysis_ip(ip: str, mask: str) -> tuple:
     cidr_mask = bin(subnet_mask).count("1")
     network_word = ip_address & subnet_mask
     host_bits = 32 - cidr_mask
-    broadcast_word = network_word | (2**host_bits - 1)
+    broadcast_word = network_word | (2 ** host_bits - 1)
     network = convert_word_to_str(network_word)
     broadcast = convert_word_to_str(broadcast_word)
     if cidr_mask >= 31:
         num_hosts = 0
     else:
-        num_hosts = 2**host_bits - 2
+        num_hosts = 2 ** host_bits - 2
     class_type = class_ip_checker(ip, mask)
     return class_type, network, broadcast, num_hosts, cidr_mask
-
-
 
 
 def convert_str_to_word(ip_address: str) -> int:
